@@ -1,0 +1,36 @@
+# Build directories and artifacts
+build/
+cmake-build-debug/
+cmake-build-release/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.dll
+
+# CMake cache
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+CMakeFiles/
+CMakeScripts/
+
+# IDE and editor files
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/c_cpp_properties.json
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Dependencies (if applicable)
+/dependencies/
+/libs/
+
+# Test outputs
+test_results/
+*.log
