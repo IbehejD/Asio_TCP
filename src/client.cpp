@@ -1,58 +1,50 @@
-
-#include <iostream>
-#include <variant>
+#include "Client.h"
 
 #include <array>
 #include <iostream>
-#include <asio.hpp>
 
 using asio::ip::tcp;
 
-int main(int argc, char *argv[])
+Client::Client(asio::io_context &io_context, const char *ip, const char *port)
+    : io_context_(io_context),
+      socket_(io_context)
 {
-    try
-    {
+    resolve_ip(ip, port);
+    connect();
+    read();
+}
 
-        if (argc != 3)
+void Client::resolve_ip(const char *ip, const char *port)
+{
+    tcp::resolver resolver(io_context_);
+    endpoints_ = resolver.resolve(ip, port);
+}
+
+void Client::connect()
+{
+    asio::connect(socket_, endpoints_);
+    std::cout << "Connected to " << socket_.remote_endpoint() << std::endl;
+}
+
+void Client::read()
+{
+    for (;;)
+    {
+        std::array<char, 128> buf;
+        asio::error_code error;
+
+        std::size_t len = socket_.read_some(asio::buffer(buf), error);
+
+        if (error == asio::error::eof)
         {
-            std::cerr << "Usage: client <host>" << std::endl;
-            return 1;
+            std::cout << "Connection closed by peer" << std::endl;
+            break;
+        }
+        else if (error)
+        {
+            throw std::system_error(error);
         }
 
-        asio::io_context io_context;
-
-        tcp::resolver resolver(io_context);
-        tcp::resolver::results_type endpoints =
-            resolver.resolve(argv[1], argv[2]);
-
-        tcp::socket socket(io_context);
-        asio::connect(socket, endpoints);
-        std::cout << "Connected to " << argv[1] << std::endl;
-
-        for (;;)
-        {
-            std::array<char, 128> buf;
-            asio::error_code error;
-
-            std::size_t len = socket.read_some(asio::buffer(buf), error);
-
-            if (error == asio::error::eof)
-            {
-                std::cout << "Connection closed by peer" << std::endl;
-                break; // Connection closed cleanly by peer.
-            }
-            else if (error)
-            {
-                throw std::system_error(error); // Some other error.
-            }
-
-            std::cout.write(buf.data(), len);
-        }
+        std::cout.write(buf.data(), len);
     }
-    catch (std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
-
-    return 0;
 }

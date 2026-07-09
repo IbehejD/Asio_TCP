@@ -6,26 +6,25 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # include(CTest)
 
-set(SOURCES
+set(CLIENT_SOURCES 
+src/Client.cpp
 )
 
-set(HEADERS
-
+set(CLIENT_HEADERS
+include/Client.h 
 )
 
 add_executable(client_app)
 add_executable(server_app)
 
 target_sources(client_app PRIVATE
-    src/client.cpp
-    ${SOURCES}
-    ${HEADERS}
+    src/client_app.cpp
+    ${CLIENT_SOURCES}
+    ${CLIENT_HEADERS}
 )
 
 target_sources(server_app PRIVATE
     src/server.cpp
-    ${SOURCES}
-    ${HEADERS}
 )
 
 target_compile_features(client_app PUBLIC cxx_std_23)
