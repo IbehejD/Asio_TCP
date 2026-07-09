@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     && rm -rf /var/lib/apt/lists/* \
-    && update-ca-certificates
+    && update-ca-certificates \
+    && python3 -m pip install conan --break-system-packages
 
 WORKDIR /workspaces/EventDispatcher
 
