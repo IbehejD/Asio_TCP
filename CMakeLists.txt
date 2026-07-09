@@ -14,6 +14,14 @@ set(CLIENT_HEADERS
 include/Client.h 
 )
 
+set(SERVER_SOURCES 
+src/Server.cpp
+)
+
+set(SERVER_HEADERS
+include/Server.h 
+)
+
 add_executable(client_app)
 add_executable(server_app)
 
@@ -24,7 +32,9 @@ target_sources(client_app PRIVATE
 )
 
 target_sources(server_app PRIVATE
-    src/server.cpp
+    src/server_app.cpp
+    ${SERVER_SOURCES}
+    ${SERVER_HEADERS}
 )
 
 target_compile_features(client_app PUBLIC cxx_std_23)

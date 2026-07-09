@@ -1,47 +1,37 @@
-
-#include <iostream>
-#include <variant>
-
-#include <array>
-#include <iostream>
-#include <asio.hpp>
+#include "Server.h"
 
 using asio::ip::tcp;
 
-void handle_write(std::shared_ptr<std::string> msg, asio::error_code error) {
+ServerConnection::ServerConnection(asio::io_context &io_context) : socket_(io_context) {};
 
+tcp::socket &ServerConnection::getSocket()
+{
+    return socket_;
 };
 
-void start_accept(asio::io_context &io_context, tcp::acceptor &acceptor);
-
-void handle_accept(std::shared_ptr<tcp::socket> sock, asio::io_context &io_context, tcp::acceptor &acceptor, asio::error_code error)
+void ServerConnection::write(asio::error_code error)
 {
     std::shared_ptr<std::string> msg = std::make_shared<std::string>("Hello world!\n");
-    asio::async_write(*sock, asio::buffer(*msg), std::bind(handle_write, msg, asio::placeholders::error));
-
-    start_accept(io_context, acceptor);
+    asio::async_write(socket_, asio::buffer(*msg), std::bind(&ServerConnection::handle_write, shared_from_this(), msg, asio::placeholders::error));
 };
 
-void start_accept(asio::io_context &io_context, tcp::acceptor &acceptor)
-{
-    std::shared_ptr<tcp::socket> socket = std::make_shared<tcp::socket>(io_context);
-    acceptor.async_accept(*socket, std::bind(handle_accept, socket, std::ref(io_context), std::ref(acceptor), asio::placeholders::error));
+void ServerConnection::handle_write(std::shared_ptr<std::string> msg, asio::error_code error) {
+
 };
 
-int main(int argc, char *argv[])
+void Server::handle_accept(std::shared_ptr<ServerConnection> connection, asio::error_code error)
 {
-    try
-    {
-        asio::io_context io_context;
-        tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 13));
-        start_accept(io_context, acceptor);
+    connection->write(error);
+    start_accept();
+};
 
-        io_context.run();
-    }
-    catch (std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
-
-    return 0;
+Server::Server(asio::io_context &io_context) : io_context_(io_context), acceptor_(io_context, tcp::endpoint(tcp::v4(), 13))
+{
+    start_accept();
 }
+
+void Server::start_accept()
+{
+    std::shared_ptr<ServerConnection> connection = std::make_shared<ServerConnection>(io_context_);
+    acceptor_.async_accept(connection->getSocket(), std::bind(&Server::handle_accept, this, connection, asio::placeholders::error));
+};
